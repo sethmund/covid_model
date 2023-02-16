@@ -1,0 +1,16 @@
+﻿Meaning,Value,Variable Name
+Vaccine reduction in infectiousness,0.5,Sigma_q
+Vaccine effectivness,0.5,Sigma_I
+Vaccine protection against hospitalization,0.9,Sigma_H
+Vaccine protection against infection mortality,0.95,Sigma_D
+ICU Rate of Recovery ,1/8,Zeta
+Recovery Rate,0.158730159,Gamma
+ICU Duration,8,
+Birth Rate,0.000328,b
+Duration of Natural Immunity in days,200,
+Duration of Vaccine Immunity in days,200,
+Total Age Groups,85,
+Total Population,~315m,
+Initial Vaccine Period,200,
+Normal Vaccine Period,60,
+R0,5,
