@@ -1,0 +1,194 @@
+---
+title: "SARS-CoV-2 Endemicity Model"
+author: "Edmunds S, Rao V"
+output:
+  pdf_document: null
+  latex_engine: default
+  html_document:
+    df_print: paged
+bibliography: ID Modeling.bib
+graphics: yes
+csl: C:/Users/Seth/Zotero/styles/nature.csl
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Background
+
+An epidemic refers to the rapid spread of a pathogen in a population, while the endemic state refers to the stable maintenance of the pathogen, typically at a lower prevalence. When a new virus emerges into a human population, it can ignite an epidemic. The virus can be introduced from a different part of the world, or it can be a newly emerged zoonosis. If the virus spreads worldwide, then the epidemic is a pandemic. An epidemic requires the basic reproductive number of the virus, $R_0$, which equals the typical number of secondary infections produced by each infected individual when the population is completely susceptible, to be greater than one. The number of infections grows exponentially. The exponential growth phase cannot last for very long, as the virus runs out of susceptible individuals: infected individuals recover and are, at least temporarily, immune to infection. Thus, as the epidemic progresses, the effective reproductive number, $R_t$, for the infection falls. The epidemic subsides, and the number of infected individuals can fall to very low levels. The epidemic can go extinct if the population is below a critical size, as is frequently the case for epidemics in isolated populations.
+
+If the virus does not go extinct, it can persist for an extended period of time at a lower prevalence than at the peak of the epidemic. The latter is the endemic phase. The $R_t$ on average equals one during this phase. The endemic phase is characterized by a dynamic equilibrium where susceptible individuals arise by birth, by immigration, or by waning of immunity in previously immune individuals. In addition, seasonal fluctuations in transmission can result in oscillations in the number of infections. Figure 1 A shows how the number of infections changes during the transition from epidemic to endemic phase. Importantly, the efficacy of the immune response to an infection and vaccination is central to shaping the endemic phase. 
+
+Deterministic models have a long history of being applied to the study of infectious disease epidemiology. Many earlier studies were confined to establishing criteria for the stability of the infection-free steady state and existence of an endemic steady state, perhaps in simple cases with explicit expressions for the proportion susceptible, prevalence of infection and herd immunity. Studies of the endemic state involve demographic processes that occur at a different (and longer) time scale, as well as epidemiological processes. Important concepts for structured populations such as vaccine-induced age-shift and core groups are fundamental insights that arise from this analysis, so even though disease transmission is in principle a discrete stochastic process, deterministic modelling offers a fruitful avenue to study problems of endemicity. 
+
+Our stochastic, realistic age-structure model explores the transition to endemicity for two competing strains within a heterogeneous immune environment consisting of infection immunity, vaccination immunity, and cross-protective immunity. To approximate the essential elements within the model to reflect reality, we have included vaccine seasonality similar to the late fall, early winter influenza immunizations as well as the school summer periodicity.
+
+# Methods
+
+## Infection states
+
+Individuals within this model are classified according to their variant infection status and vaccination history. The model compromises 7 basic compartments divided between the two different variants. $S$ (susceptible), $V$(Vaccinated), $I_V$ (Infected after vaccinated), $R_V$ (Recovered after vaccinated) $I$ (Infected), $H$ Hospitalized), and $R$ (Recovered). The numerical subscripts, e.g. $I_{V1}$ , represent the variant ID. Detailed description of the compartments are seen in Table 1. 
+
+In order to allow for multiple outputs from each compartment, we were required to set an arbitrary exit hierarchy for every transition. As an example, this would assume exit transition to Recovered as a first priority then Hospitalized then Death then Mortality for the $I_{V1}$ compartment so as not to simultaneously transition the same individual from the compartment multiple times. For every transition, we stochastically drew from a Poisson distribution from within every respective compartment.
+
+## Table 1: Variable definitions
+
++----------------+-------------------------------------------------+
+| State variable | Definition                                      |
++================+=================================================+
+| S              | Susceptible                                     |
++----------------+-------------------------------------------------+
+| V              | Vaccinated                                      |
++----------------+-------------------------------------------------+
+| IV1            | Infected with Variant 1, previously vaccinated  |
++----------------+-------------------------------------------------+
+| IV2            | Infected with Variant 2, previously vaccinated  |
++----------------+-------------------------------------------------+
+| RV1            | Recovered from Variant 1, previously vaccinated |
++----------------+-------------------------------------------------+
+| RV2            | Recovered from Variant 2, previously vaccinated |
++----------------+-------------------------------------------------+
+| I1             | Infected with Variant 1                         |
++----------------+-------------------------------------------------+
+| I2             | Infected with Variant 2                         |
++----------------+-------------------------------------------------+
+| H1             | Hospitalized from Variant 1                     |
++----------------+-------------------------------------------------+
+| H2             | Hospitalized from Variant 2                     |
++----------------+-------------------------------------------------+
+| R1             | Recovered from Variant 1                        |
++----------------+-------------------------------------------------+
+| R2             | Recovered from Variant 2                        |
++----------------+-------------------------------------------------+
+
+## Model equations
+
+```{=tex}
+\begin{align}
+\dot{S} &= V/{\epsilon} + R_{V1}(1/{\iota}) + R_{V2}(1/{\iota}) + {\omega}{\sigma}I_{V1} + {\omega}{\sigma}I_{V2} - {\lambda}_1S - {\lambda}_2S - {\psi}{\rho}S + {\nu}N + {\alpha}S - {\mu}S \\
+\dot{I_1} &= {\lambda}_1S + {\lambda}_1R_2(1-{\chi}_1) - I_1{\theta} - {\gamma}I_1 - {\mu}I_1 + {\alpha}I_1\\
+\dot{I_2} &= {\lambda}_2S + {\lambda}_2R_1(1-{\chi}_2) - I_2{\theta} - {\gamma}I_2 - {\mu}I_2 + {\alpha}I_2\\
+\dot{R_1} &= {\gamma}I_1 + {\zeta}H_1 - {\psi}{\rho}R_1 - {\lambda}_2R_1(1-{\chi}_2) - {\mu}R_1 + {\alpha}R_1\\
+\dot{R_2} &= {\gamma}I_2 + {\zeta}H_2 - {\psi}{\rho}R_2 - {\lambda}_1R_2(1-{\chi}_1) - {\mu}R_2 + {\alpha}R_2\\
+\dot{I_{V1}} &= {\lambda}_1V(1-{\alpha}_1) + {\lambda}_1R_{V2}(1-{\alpha}_1) - {\gamma}I_{V1} - {\theta}{\sigma}I_{V1} - {\mu}I_{V1} + {\alpha}I_{V1}\\
+\dot{I_{V2}} &= {\lambda}_2V(1-{\alpha}_2) + {\lambda}_2R_{V1}(1-{\alpha}_2) - {\gamma}I_{V2} - {\theta}{\sigma}I_{V2} - {\mu}I_{V2} + {\alpha}I_{V2}\\
+\dot{R_{V1}} &= {\gamma}I_{V1} - R_{V1}(1/{\iota}) - {\mu}R_{V1} + {\alpha}V_{R1}\\
+\dot{R_{V2}} &= {\gamma}I_{V2} - R_{V2}(1/{\iota}) - {\mu}R_{V2} + {\alpha}V_{R2}\\
+\dot{V} &= {\psi}{\rho}S + {\psi}{\rho}R_1 + {\psi}{\rho}R_2 - {\lambda}_1V(1-{\alpha}_1) - {\lambda}_2V(1-{\alpha}_2) - {\mu}V + {\alpha}V\\
+\dot{H_1} &= I_1{\theta} + {\theta}{\sigma}I_{V1} - {\zeta}H_1 - {\mu}H_1 + {\alpha}H_1\\
+\dot{H_2} &= I_2{\theta} + {\theta}{\sigma}I_{V2} - {\zeta}H_2 - {\mu}H_2 + {\alpha}H_2
+\end{align}
+```
+## Model diagram
+
+![](diagram.png "SARS-CoV-2 Endemic Model Diagram")
+
+## Table 2: Model Parameters
+
++---------------+-----------------------------------------+---------------+----------------------------+
+| Parameter     | Definition                              | Default Value |Exploratory range           |
++===============+=========================================+===============+============================+
+| R~01~         | Reproduction Number Variant 1           |               |2,3,4                       |
++---------------+-----------------------------------------+---------------+----------------------------+
+| R~02~         | Reproduction Number Variant 2           |               |4,6,8,10                    |
++---------------+-----------------------------------------+---------------+----------------------------+
+| $\alpha$~1~   | Vaccine efficacy Variant 1              |               |0.85,0.90.0.95              |
++---------------+-----------------------------------------+---------------+----------------------------+
+| $\alpha$~2~   | Vaccine efficacy Variant 2              |               |0.3,0.5,0.7                 |
++---------------+-----------------------------------------+---------------+----------------------------+
+| $\gamma$      | Recovery rate                           | 0.15          |                            |
++---------------+-----------------------------------------+---------------+----------------------------+
+| $\epsilon$    | Vaccination immunity duration (days)    |               |150, 200, 250, 300          |
++---------------+-----------------------------------------+---------------+----------------------------+
+| $\rho$        | Vaccination coverage                    |               |0,10,20,...,100%            |
++---------------+-----------------------------------------+---------------+----------------------------+
+| $\theta$      | ICU rate                                | 1/365         |                            |
++---------------+-----------------------------------------+---------------+----------------------------+
+| $\kappa$      | Natural immunity duration (days)        |               |150,200,250,300             |
++---------------+-----------------------------------------+---------------+----------------------------+
+| $\zeta$       | ICU duration                            | $\gamma$*3    |                            |
++---------------+-----------------------------------------+---------------+----------------------------+
+| $\chi$~1~     | Cross-protection from Variant 1         |               |0.5,0.7,0.9                 |
++---------------+-----------------------------------------+---------------+----------------------------+
+| $\chi$~2~     | Cross-protection from Variant 2         |               |0.5,0.7,0.9                 |
++---------------+-----------------------------------------+---------------+----------------------------+
+| $\sigma_1^R$  | Vaccination recovery improvement rate   |               |0.5,0.7,0.9                 |
++---------------+-----------------------------------------+---------------+----------------------------+
+| $\sigma_1^R$  | Vaccination recovery improvement rate   |               |0.5,0.7,0.9                 |
++---------------+-----------------------------------------+---------------+----------------------------+
+| $\sigma_1^D$  | Vaccination death improvement rate      |               |0.5,0.7,0.9                 |
++---------------+-----------------------------------------+---------------+----------------------------+
+| $\sigma_1^D$  | Vaccination death improvement rate      |               |0.5,0.7,0.9                 |
++---------------+-----------------------------------------+---------------+----------------------------+
+| $\sigma_1^H$  | Vaccination ICU improvement rate        |               |0.5,0.7,0.9                 |
++---------------+-----------------------------------------+---------------+----------------------------+
+| $\sigma_1^H$  | Vaccination ICU improvement rate        |               |0.5,0.7,0.9                 |
++---------------+-----------------------------------------+---------------+----------------------------+
+| $\sigma_1^I$  | Vaccination infection improvement rate  |               |0.5,0.7,0.9                 |
++---------------+-----------------------------------------+---------------+----------------------------+
+| $\sigma_1^I$  | Vaccination infection improvement rate  |               |0.5,0.7,0.9                 |
++---------------+-----------------------------------------+---------------+----------------------------+
+
+## Infection fatality rates
+
+To assess the infection fatality rates in our model we applied IFRs derived from the Levin, et al. meta-analysis. [@levin_assessing_2020] These were calculated in the late 2020s which would be the most accurate measure of the beginning to mid pandemic when curative treatments were still developing however later IFRs estimated in this model may overestimate as treatments and supplies normalize over the years.
+
+## ICU rates
+
+The proportions of severe disease within our model were taken from Chinese ICU rate estimates by age group.[@verity2020]
+
+## School seasonality
+
+Realistic age-structure (RAS) contact matrices were taken from the Mistry et al. analysis for the United States. [@mistry_inferring_2021] To reflect a period of reduced contact during summer months, we used a reduced contact matrix which compromised of a subtracted the school matrix from the overall matrix this was analogous to a school summer period (June-August), for the rest of the year however the overall contact matrix was used.
+
+## Demographic transitions
+
+-   Natural mortality
+
+    Using US census data, we calculated an age-based rate of death for our model to simulate naturally occurring deaths within the population.
+
+-   Births
+
+    Similarly to deaths, we used US Census to create a fixed birth rate for our model.
+
+-   Immigration
+
+    Using data from CIS, we created an immigration proportion within the model to assume that an equal proportion from every compartment were immigrating every day.
+
+## Scenarios
+
+*   Vaccination coverage and seasonality
+
+A primary exploratory variable within this model is age-based vaccination coverage. We will simulate vaccination coverage using values from prior seasonal influenza campaigns and will assess 10% incremental coverage levels from 0% to 100% with 50% approximating the normal influenza coverage levels. We initialized the model with reported rates from the Fiore, et al. paper and dynamically calculated the age-based weights each year.[@fiore2009] Our model assumes an annual vaccination cycle (full vaccination) during a 3 month window towards the end of the year similarly to what we see during an influenza vaccination campaign. All susceptible within the model are eligible for vaccination during this period however for the rest of the year, there are no vaccinations. This simulates a vaccine immunization season. Within vaccination coverage, we will also explore several biological variables such as:
+
+    Reproduction number
+    
+Exploring the initial reproduction number will give us the ability to simulate the infectiousness of the variants within the context of the age-based, weighted vaccination coverage levels.
+
+    Cross-Protection
+
+With the emergence of Alpha, Delta, and now Omicron the ability to assess how cross-protective immunity could modulate the spread of a subsequent variant is needed. Given the co-circulation of different variants is an inevitably, one of the main exploratory variables in our model is the cross-protection immunity between two variants.  We explore various values of cross-protection in order to simulate how quickly one variant might replace another or whether co-circulating endemicity is achieved.
+
+    Vaccine immunity duration
+
+A key question during this pandemic is how long will immunity provided by this vaccination provide protection. We will explore multiple scenarios for immunity duration however as a fixed variable we will assume the duration will last one year.
+
+    Infection immunity duration
+
+A hard to assess factor during this pandemic is infection immunity duration. Due to the highly variable response to infection, immunity is impossible to assess but we will explore various durations, as a fixed variable we will use a 1 year duration.
+
+    Vaccine effectiveness
+
+We will also explore various parameters for vaccine effectiveness and will assume a homogeneous immunization program during a simulation despite in reality there being many vaccinations available.
+
+    Vaccine effects
+    
+To simulate the effects of vaccine immunity on infection, hospitalization, and death, we will explore the use of a scaling factor to approximate effects on those parameters.
+
+# Results
+
+# Appendix
+
+# References
